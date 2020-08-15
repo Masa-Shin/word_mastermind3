@@ -4,7 +4,6 @@
     <main>
       <div id="results" class="main-component">
         <table id="result_table">
-
           <tr>
             <th class="index">Turn</th>
             <th class="input_word">Word</th>
@@ -22,7 +21,6 @@
             <td class="eat">{{result.eat}} EAT</td>
             <td class="bite">{{result.bite}} BITE</td>
           </tr>
-
         </table>
       </div>
 
@@ -57,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, computed } from 'vue'
 import { wordList } from './wordList'
 import 'normalize.css'
 
@@ -78,44 +76,44 @@ export default defineComponent({
       errorMessages: []
     })
 
-    // computedに書き換える！
-    const hasDuplicateCharacters = (input: string): boolean => {
-      const characters: string[] = input.split('')
+    // computed
+    const hasDuplicateCharacters = computed(() => {
+      const characters: string[] = state.inputWord.split('')
       const duplicateCharacters: string[] = characters.filter(function (x, i, self) {
         return self.indexOf(x) !== self.lastIndexOf(x)
       })
 
       return (duplicateCharacters.length > 0)
-    }
+    })
 
-    const hasOnlyAlphabet = (input: string): boolean => {
+    const hasOnlyAlphabet = computed(() => {
       const regExp = new RegExp(/^[a-zA-Z]*$/)
-      return regExp.test(input)
-    }
+      return regExp.test(state.inputWord)
+    })
 
-    const calculateEat = (): number => {
+    const numberOfEats = computed(() => {
       let count = 0
-      const charactersOfInput = state.inputWord.split('')
-      const charactersOfChosen = state.chosenWord.split('')
+      const charactersOfInput: string[] = state.inputWord.split('')
+      const charactersOfChosen: string[] = state.chosenWord.split('')
 
       for (let i = 0; i < 4; i++) {
         if (charactersOfInput[i] === charactersOfChosen[i]) count++
       }
 
       return count
-    }
+    })
 
-    const calculateBite = (): number => {
+    const numberOfBites = computed(() => {
       let count = 0
-      const charactersOfInput = state.inputWord.split('')
-      const charactersOfChosen = state.chosenWord.split('')
+      const charactersOfInput: string[] = state.inputWord.split('')
+      const charactersOfChosen: string[] = state.chosenWord.split('')
 
       charactersOfInput.forEach(val => {
         if (charactersOfChosen.indexOf(val) >= 0) count++
       })
 
-      return count - calculateEat()
-    }
+      return count - numberOfEats.value
+    })
 
     const methods = {
       submitWord: () => {
@@ -130,16 +128,16 @@ export default defineComponent({
 
         // verify the input
         if (input.length !== 4) state.errorMessages.push('4文字入力してください。')
-        if (hasDuplicateCharacters(input)) state.errorMessages.push('同一文字が2つ以上入っています。')
-        if (!hasOnlyAlphabet(input)) state.errorMessages.push('半角英字で入力してください。')
+        if (hasDuplicateCharacters.value) state.errorMessages.push('同一文字が2つ以上入っています。')
+        if (!hasOnlyAlphabet.value) state.errorMessages.push('半角英字で入力してください。')
         if (state.errorMessages.length > 0) return
 
         // 判定結果をstate.resultsに格納
-        const result = {
+        const result: Result = {
           id: state.results.length,
           word: input,
-          eat: calculateEat(),
-          bite: calculateBite()
+          eat: numberOfEats.value,
+          bite: numberOfBites.value
         }
         state.results.push(result)
 
@@ -154,7 +152,7 @@ export default defineComponent({
         // 入力欄を空に
         state.inputWord = ''
 
-        /* 4EATsの場合は終了 */
+        // 4EATsの場合は終了
         if (result.eat === 4) {
           state.messages.push('正解！！')
           state.hasGameDone = true
