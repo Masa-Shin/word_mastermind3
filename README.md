@@ -1,5 +1,9 @@
 # word_mastermind3
 
+An English word game build with Vue3 composition API + TypeScript.
+
+https://masa-shin.github.io/word_mastermind3/
+
 ## Project setup
 ```
 yarn install
@@ -24,6 +28,3 @@ yarn test:unit
 ```
 yarn lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
