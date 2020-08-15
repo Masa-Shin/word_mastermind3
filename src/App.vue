@@ -256,6 +256,8 @@ tr {
   div{
     input[type="text"]{
       height:1.5rem;
+      width: 14rem;
+      margin: 0 1rem 0 0;
     }
     input{
       max-width:50vw;
