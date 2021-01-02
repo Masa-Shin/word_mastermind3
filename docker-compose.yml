@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+  redis:
+    image: redis:5.0.6-alpine
+    hostname: redis
+    ports:
+      - 6379:6379
