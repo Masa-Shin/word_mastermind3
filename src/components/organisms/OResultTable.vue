@@ -22,11 +22,6 @@ import { defineComponent, PropType } from 'vue'
 import ATableCell from '../atoms/ATableCell.vue'
 import MResultRow from '../molecules/MResultRow.vue'
 
-type Props = {
-  results: Result[];
-  hasGameDone: boolean;
-}
-
 export default defineComponent({
   components: {
     ATableCell,
