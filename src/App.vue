@@ -1,63 +1,83 @@
 <template>
-  <div id="container">
-    <h2 id="title">英単語当てゲーム</h2>
-    <main>
-      <div id="results" class="main-component">
-        <table id="result_table">
-          <tr>
-            <th class="index">Turn</th>
-            <th class="input_word">Word</th>
-            <th class="eat">EAT</th>
-            <th class="bite">BITE</th>
-          </tr>
+  <div class="w-full h-full min-h-screen min-w-80 m-0 pb-6 bg-gray-200 text-gray-600 text-newmorphism">
+    <header class="pt-1 pb-0 sm:pt-5 sm:pb-4">
+      <a-page-title>WORD GUESS</a-page-title>
+    </header>
 
-          <tr
-            v-for="(result, index) in state.results"
-            :key="result.id"
-            :class="{ correct : state.hasGameDone && index === state.results.length - 1 }"
-          >
-            <td class="index">{{index + 1}}</td>
-            <td class="input_word">{{result.word}}</td>
-            <td class="eat">{{result.eat}} EAT</td>
-            <td class="bite">{{result.bite}} BITE</td>
-          </tr>
-        </table>
+    <main class="w-11/12 max-w-2xl mx-auto">
+      <div class="nm-inset-gray-200 sm:my-4 mx-auto bg-white border-b border-gray-300 min-h-96 rounded-lg overflow-y-scroll">
+        <o-result-table
+          :results="state.results"
+          :has-game-done="state.hasGameDone"
+        />
       </div>
 
-      <div id="input_area" class="main-component">
-        <div>
+      <div class="flex justify-between items-center my-4 mx-auto flex-wrap sm:flex-nowrap">
+        <div class="flex justify-between items-center w-full mb-4 flex-wrap sm:flex-nowrap sm:mb-0 sm:justify-start">
           <input
             id="input_field"
             v-model="state.inputWord"
             @keyup.enter="methods.submitWord"
             type="text"
             maxlength="4"
-            placeholder="4文字の英単語を入力してね"
+            class="nm-inset-gray-200 h-9 w-full sm:w-56 max-w-3xl px-2 py-2 mb-4 sm:mr-4 sm:mb-0 rounded-xl focus:outline-none"
+            placeholder="4 文字の英単語を入力"
             autofocus
           >
-          <button v-if="!state.hasGameDone" @click="methods.submitWord">判定</button>
+
+          <a-button
+            v-if="!state.hasGameDone"
+            color="green"
+            @click="methods.submitWord"
+          >
+            SUBMIT
+          </a-button>
         </div>
-        <button id="reset_btn" @click="methods.reset">リセット</button>
+        <a-button
+          color="red"
+          @click="methods.reset"
+        >
+          RESTART
+        </a-button>
       </div>
 
-      <div id="message_area" class="main-component">
-        <p v-for="message in state.messages" :key="message">{{message}}</p>
-        <p v-for="errorMessage in state.errorMessages" :key="errorMessage" class="error">エラー：{{errorMessage}}</p>
+      <div class="my-4 mx-auto font-medium leading-normal">
+        <p v-for="message in state.messages" :key="message" class="text-green font-semibold tracking-wider">{{message}}</p>
+        <p v-for="errorMessage in state.errorMessages" :key="errorMessage" class="text-red">{{errorMessage}}</p>
       </div>
 
-      <div id="rule_area" class="main-component">
-        EAT ：文字の種類も場所も合っている<br>
-        BITE：文字の種類は合っているが場所が違う
+      <div class="border-box my-4 mx-auto rounded-xl leading-normal">
+        <p class="mb-2">
+          EAT ：文字の種類も場所も合っている<br>
+          BITE：文字の種類は合っているが場所が違う
+        </p>
+        <p>ヒントを元に隠された 4 文字の英単語を当ててください。</p>
       </div>
-
     </main>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive, computed } from 'vue'
+import APageTitle from './components/atoms/APageTitle.vue'
+import AButton from './components/atoms/AButton.vue'
+import OResultTable from './components/organisms/OResultTable.vue'
 import { wordList } from './wordList'
-import 'normalize.css'
+
+type State = {
+  chosenWord: string; // 当てるべき単語
+  inputWord: string; // ユーザの入力
+  results: Result[]; // 判定結果を格納
+  hasGameDone: boolean; // ゲームが終了しているかどうか
+  messages: string[];
+  errorMessages: string[];
+}
+type Result = {
+  id: number;
+  word: string;
+  eat: number;
+  bite: number;
+}
 
 const chooseWord = (): string => {
   const randomNumber: number = Math.floor(Math.random() * wordList.length)
@@ -65,9 +85,13 @@ const chooseWord = (): string => {
 }
 
 export default defineComponent({
-  name: 'App',
+  components: {
+    AButton,
+    APageTitle,
+    OResultTable
+  },
   setup () {
-    const state = reactive<Props>({
+    const state = reactive<State>({
       chosenWord: chooseWord(),
       inputWord: '',
       results: [],
@@ -77,21 +101,21 @@ export default defineComponent({
     })
 
     // computed
-    const hasDuplicateCharacters = computed(() => {
+    const hasDuplicateCharacters = computed((): boolean => {
       const characters: string[] = state.inputWord.split('')
       const duplicateCharacters: string[] = characters.filter(function (x, i, self) {
         return self.indexOf(x) !== self.lastIndexOf(x)
       })
 
-      return (duplicateCharacters.length > 0)
+      return duplicateCharacters.length > 0
     })
 
-    const hasOnlyAlphabet = computed(() => {
+    const hasOnlyAlphabet = computed((): boolean => {
       const regExp = new RegExp(/^[a-zA-Z]*$/)
       return regExp.test(state.inputWord)
     })
 
-    const numberOfEats = computed(() => {
+    const numberOfEats = computed((): number => {
       let count = 0
       const charactersOfInput: string[] = state.inputWord.split('')
       const charactersOfChosen: string[] = state.chosenWord.split('')
@@ -103,7 +127,7 @@ export default defineComponent({
       return count
     })
 
-    const numberOfBites = computed(() => {
+    const numberOfBites = computed((): number => {
       let count = 0
       const charactersOfInput: string[] = state.inputWord.split('')
       const charactersOfChosen: string[] = state.chosenWord.split('')
@@ -127,8 +151,8 @@ export default defineComponent({
         if (state.hasGameDone) return
 
         // verify the input
-        if (input.length !== 4) state.errorMessages.push('4文字入力してください。')
-        if (hasDuplicateCharacters.value) state.errorMessages.push('同一文字が2つ以上入っています。')
+        if (input.length !== 4) state.errorMessages.push('4 文字で入力してください。')
+        if (hasDuplicateCharacters.value) state.errorMessages.push('同じ文字は 1 文字しか使えません。')
         if (!hasOnlyAlphabet.value) state.errorMessages.push('半角英字で入力してください。')
         if (state.errorMessages.length > 0) return
 
@@ -160,8 +184,7 @@ export default defineComponent({
       },
 
       reset: () => {
-        // まだゲームが終了してない場合はリセットしていいか確認する
-        if (!state.hasGameDone && !confirm('リセットします。よろしいですか？')) return false
+        if (!confirm('ゲームを最初から開始しますか？')) return
 
         // 初期化する
         state.results = []
@@ -186,110 +209,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="scss" scoped>
-#container {
-  width: 100%;
-  height: 100%;
-  min-width:285px;
-  min-height:100vh;
-  margin: 0;
-  background-color: #e6ecf0;
-  font-size:16px;
-}
-
-#title {
-  margin:0 auto;
-  padding-top:20px;
-  font-size:1.5rem;
-  text-align:center;
-}
-
-.main-component{
-  width:95vw;
-  max-width:600px;
-  margin: 1rem auto 1rem;
-}
-
-#results{
-  background-color:#fff;
-  height:390px;
-  border: 1px solid #ccc;
-  overflow-y: scroll;
-}
-
-table, th, td {
-  border-collapse: collapse;
-  line-height: 1.0;
-}
-
-th, td {
-  padding: 12px;
-  vertical-align: top;
-  border-bottom: 1px solid #ccc;
-  border-right:  1px solid #ccc;
-}
-
-th {
-  width: 150px;
-  font-weight: 600;
-}
-
-td {
-  width: 350px;
-}
-
-tr {
-  &:nth-child(even) {
-    background: #eee;
-  }
-  &.correct {
-    background: #02e2ff !important;
-  }
-}
-
-#input_area {
-  display:flex;
-  height:2rem;
-  justify-content:space-between;
-
-  div{
-    input[type="text"]{
-      height:1.5rem;
-      width: 14rem;
-      margin: 0 1rem 0 0;
-    }
-    input{
-      max-width:50vw;
-    }
-  }
-  button {
-    display:inline-block;
-    height: 2rem;
-  }
-}
-
-#message_area{
-  font-weight:600;
-  line-height:1.5;
-  margin-bottom:1rem;
-}
-
-.error{
-  color:#F00;
-}
-
-#rule_area{
-  background-color:#fff;
-  box-sizing: border-box;
-  max-width:600px;
-  margin-bottom:0.5rem;
-  padding:0.5rem;
-  line-height:1.5;
-  border: 1px solid #000;
-}
-
-[v-cloak] {
-  display: none;
-}
-</style>
