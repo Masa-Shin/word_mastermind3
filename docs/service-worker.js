@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/word_mastermind3/precache-manifest.c4a904c5821729c94fc38fc196e5eadd.js"
+  "/word_mastermind3/precache-manifest.9911e10c45ec19215c48bf50b3c9eb66.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "word_mastermind3"});
